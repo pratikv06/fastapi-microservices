@@ -6,6 +6,7 @@ from src.services.gateway import GatewayService, get_gateway_service
 
 # fastapi
 from fastapi import Body, Depends, Request, Response, APIRouter, status
+from fastapi.responses import JSONResponse
 
 router = APIRouter(
     prefix="",
@@ -13,6 +14,20 @@ router = APIRouter(
 )
 
 GatewayServiceDep = Annotated[GatewayService, Depends(get_gateway_service)]
+
+
+# === Proxy and rewrite OpenAPI JSON ===
+@router.get("/{service}/openapi.json", include_in_schema=False)
+async def get_service_openapi(
+    service: str,
+    gateway_service: GatewayServiceDep,
+) -> JSONResponse:
+    """
+    Fetches and rewrites the OpenAPI JSON from the microservice.
+
+    Adds `servers` to include service path.
+    """
+    return await gateway_service.call_openapi(service)
 
 
 @router.get(
