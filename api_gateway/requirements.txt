@@ -1,0 +1,32 @@
+# fastapi
+fastapi[standard]
+uvicorn
+
+# settings
+pydantic-settings
+pydantic[email]
+python-dotenv
+
+# hashing
+passlib[bcrypt]
+bcrypt
+
+# jwt
+python-jose
+
+# database
+sqlalchemy[asyncio]
+asyncpg
+psycopg2-binary
+alembic
+
+# formatting
+isort
+black
+flake8
+ruff
+pyright
+mypy
+
+# debug
+debugpy

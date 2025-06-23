@@ -1,0 +1,70 @@
+# https://black.readthedocs.io/
+[tool.black]
+line_length = 88
+target_version = ["py310"]
+include = '\.pyi?$'
+
+
+# https://timothycrosley.github.io/isort/
+[tool.isort]
+profile = "black"
+length_sort = true
+combine_as_imports = true
+default_section = "THIRDPARTY"
+sections = "FUTURE,STDLIB,THIRDPARTY,FASTAPI,FIRSTPARTY,LOCALFOLDER"
+known_fastapi = "fastapi"
+known_firstparty = "config"
+src_paths = ["back/src", "front"]
+import_heading_stdlib = "stdlib"
+import_heading_thirdparty = "third party"
+import_heading_fastapi = "fastapi"
+import_heading_nicegui = "nicegui"
+import_heading_firstparty = "project files"
+
+# https://flake8.pycqa.org/
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info"
+]
+per-file-ignores = [
+    "__init__.py:F401"
+]
+
+# https://beta.ruff.rs/docs/
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+select = ["E", "F", "I", "N", "W", "B", "COM", "C4", "UP", "RUF"]
+ignore = ["E203"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info"
+]
+
+[tool.ruff.isort]
+combine-as-imports = true
+known-first-party = ["config"]
+known-third-party = ["fastapi"]
+section-order = ["future", "standard-library", "third-party", "fastapi", "first-party", "local-folder"]
+
+# https://microsoft.github.io/pyright/
+[tool.pyright]
+include = ["./"]
+exclude = [
+    "**/__pycache__",
+    "build",
+    "dist"
+]
+pythonVersion = "3.10"
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportMissingTypeStubs = false

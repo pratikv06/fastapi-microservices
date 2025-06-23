@@ -1,0 +1,14 @@
+{
+  "host": "localhost",
+  "port": 8000,
+  "title": "FastAPI Backend",
+  "description": "Learning FastAPI Best Practices 🚀",
+  "version": "1.0.0",
+  "openapi_version": "3.1.0",
+  "contact": {
+    "name": "Pratik Vishwakarma",
+    "url": "https://github.com/pratikv06",
+    "email": "pratikvishwakarma06.pv@gmail.com"
+  },
+  "openapi_tags": []
+}
