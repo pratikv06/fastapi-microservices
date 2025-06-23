@@ -4,7 +4,7 @@ from typing import Any
 # fastapi
 from fastapi import Body, Query, FastAPI
 
-app = FastAPI()
+app = FastAPI(title="Auth Service")
 
 
 @app.get("/health")

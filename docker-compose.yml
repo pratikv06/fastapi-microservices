@@ -6,8 +6,6 @@ services:
       dockerfile: ./Dockerfile
     image: api-gateway:1.0
     container_name: api-gateway
-    volumes:
-      - ./api_gateway:/app
     ports:
       - 8000:8000
     env_file:
@@ -15,6 +13,8 @@ services:
     environment:
       PYTHONPATH: /app:$PYTHONPATH
       PYDEVD_DISABLE_FILE_VALIDATION: 1
+    volumes:
+      - ./api_gateway:/app
     restart: unless-stopped
     networks:
       - microservices-api
@@ -25,19 +25,10 @@ services:
       dockerfile: ./Dockerfile
     image: auth-service:1.0
     container_name: auth-service
-    tty: true
     ports:
       - 8001:8000
     env_file:
       - ./auth_service/.env
-    environment:
-      DB_HOST: learning-db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: learningdb
-      PYTHONPATH: /app:$PYTHONPATH
-      PYDEVD_DISABLE_FILE_VALIDATION: 1
     volumes:
       - ./auth_service:/app
     restart: unless-stopped
@@ -51,13 +42,8 @@ services:
     container_name: auth-db
     ports:
       - 5440:5432
-    expose:
-      - "5440"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: authdb
-      DB_HOST: postgres
+    env_file:
+      - ./env/.auth_service_db.env
     volumes:
       - pg_data:/var/lib/postgresql/data
     restart: always
@@ -67,17 +53,16 @@ services:
   mailpit:
     image: axllent/mailpit
     container_name: mailpit
-    restart: unless-stopped
-    volumes:
-      - mailpit_data:/data
     ports:
       - 8025:8025
       - 1025:1025
-    environment:
-      MP_MAX_MESSAGES: 5000
-      MP_DATABASE: /data/mailpit.db
-      MP_SMTP_AUTH_ACCEPT_ANY: 1
-      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    env_file:
+      - ./env/.mailpit.env
+    volumes:
+      - mailpit_data:/data
+    restart: unless-stopped
+    networks:
+      - microservices-api
 
 volumes:
   pg_data:

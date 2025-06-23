@@ -1,11 +1,13 @@
 # stdlib
 from typing import Any
+from urllib.parse import parse_qs
 
 # third party
 import httpx
 
 # fastapi
 from fastapi import Request, Response
+from fastapi.responses import JSONResponse
 
 
 class GatewayService:
@@ -47,6 +49,35 @@ class GatewayService:
                 media_type="text/html",
             )
 
+    def _get_params(self, path: str, request: Request) -> tuple[str, dict[str, Any]]:
+        """
+        Extracts and combines query parameters from the path and the request.
+
+        Args:
+            path: The request path, which may contain query parameters.
+            request: The incoming request object.
+
+        Returns:
+            A tuple containing the actual path without query parameters,
+            and a dictionary of all combined query parameters.
+        """
+        actual_path = path
+        additional_params = {}
+        if "?" in actual_path:
+            parts = actual_path.split("?", 1)
+            actual_path = parts[0]
+            if len(parts) > 1:
+                query_string = parts[1]
+                parsed_params = parse_qs(query_string)
+                additional_params = {
+                    k: v[0] if len(v) == 1 else v for k, v in parsed_params.items()
+                }
+
+        all_params: dict[str, Any] = dict(request.query_params.multi_items())
+        all_params.update(additional_params)
+
+        return actual_path, all_params
+
     async def _call_service(
         self,
         service: str,
@@ -77,17 +108,19 @@ class GatewayService:
             if name.lower() not in ("host", "content-length", "content-type")
         }
 
+        actual_path, all_params = self._get_params(path, request)
+
         # For GET/DELETE requests, body is an empty dict and we shouldn't send it.
         # For other methods, body is parsed by FastAPI and we should send it as json.
         json_body = body if request.method in ["POST", "PUT", "PATCH"] else None
 
         async with httpx.AsyncClient() as client:
-            url = f"http://{service}-service:8000/{path}"
+            url = f"http://{service}-service:8000/{actual_path}"
             response = await client.request(
                 method=request.method,
                 url=url,
                 headers=headers,
-                params=dict(request.query_params),
+                params=all_params,
                 json=json_body,
                 timeout=30.0,
             )
@@ -96,6 +129,27 @@ class GatewayService:
                 status_code=response.status_code,
                 media_type=response.headers.get("content-type", "text/plain"),
             )
+
+    async def call_openapi(self, service: str) -> JSONResponse:
+        """
+        Fetches and rewrites the OpenAPI JSON from the microservice.
+        """
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"http://{service}-service:8000/openapi.json"
+                )
+                openapi_json = response.json()
+                openapi_json["servers"] = [{"url": f"/{service}"}]
+
+                return JSONResponse(content=openapi_json)
+            except httpx.RequestError as e:
+                return JSONResponse(
+                    status_code=502,
+                    content={
+                        "error": f"Failed to fetch OpenAPI for {service}: {str(e)}"
+                    },
+                )
 
 
 def get_gateway_service():
